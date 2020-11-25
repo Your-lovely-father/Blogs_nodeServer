@@ -39,7 +39,7 @@ app.all('*', function(req, res, next) {
 });
 const mongodb = require('./core/mongodb');
 
-// data server
+//data server
 mongodb.connect();
 
 //将路由文件引入
