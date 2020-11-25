@@ -3,33 +3,9 @@ import TimeAxis from '../models/timeAxis';
 
 //获取全部时间轴内容
 exports.getTimeAxisList = (req, res) => {
-  let keyword = req.query.keyword || null;
-  let state = req.query.state || '';
   let pageNum = parseInt(req.query.pageNum) || 1;
   let pageSize = parseInt(req.query.pageSize) || 10;
   let conditions = {};
-  if (!state) {
-    if (keyword) {
-      const reg = new RegExp(keyword, 'i'); //不区分大小写
-      conditions = {
-        $or: [{ title: { $regex: reg } }, { content: { $regex: reg } }],
-      };
-    }
-  } else if (state) {
-    state = parseInt(state);
-    if (keyword) {
-      const reg = new RegExp(keyword, 'i');
-      conditions = {
-        $and: [
-          { $or: [{ state: state }] },
-          { $or: [{ title: { $regex: reg } }, { content: { $regex: reg } }] },
-        ],
-      };
-    } else {
-      conditions = { state };
-    }
-  }
-
   let skip = pageNum - 1 < 0 ? 0 : (pageNum - 1) * pageSize;
   let responseData = {
     count: 0,
@@ -40,23 +16,19 @@ exports.getTimeAxisList = (req, res) => {
       console.error('Error:' + err);
     } else {
       responseData.count = count;
+      // 待返回的字段
       let fields = {
-        title: 1,
         content: 1,
-        state: 1,
-        start_time: 1,
-        end_time: 1,
-        // update_time: 1,
-      }; // 待返回的字段
+        create_time:1
+      };
       let options = {
         skip: skip,
         limit: pageSize,
-        sort: { end_time: -1 },
+        sort: { create_time: -1 },
       };
       TimeAxis.find(conditions, fields, options, (error, result) => {
         if (err) {
           console.error('Error:' + error);
-          // throw error;
         } else {
           responseData.list = result;
           responseClient(res, 200, 0, '操作成功！', responseData);
@@ -67,7 +39,7 @@ exports.getTimeAxisList = (req, res) => {
 };
 //添加
 exports.addTimeAxis = (req, res) => {
-  let { _id ,content, start_time, end_time } = req.body;
+  let { _id ,content,} = req.body;
   TimeAxis.findOne({
     _id,
   })
@@ -75,8 +47,6 @@ exports.addTimeAxis = (req, res) => {
       if (!result) {
         let timeAxis = new TimeAxis({
           content,
-          start_time,
-          end_time,
         });
         timeAxis
           .save()
@@ -93,27 +63,6 @@ exports.addTimeAxis = (req, res) => {
     })
     .catch(errro => {
       console.error('errro :', errro);
-      responseClient(res);
-    });
-};
-//修改
-exports.updateTimeAxis = (req, res) => {
-  let { id,  content, start_time, end_time } = req.body;
-
-  TimeAxis.updateOne(
-    { _id: id },
-    {
-      content,
-      start_time,
-      end_time,
-    },
-  )
-    .then(result => {
-      // console.log(result);
-      responseClient(res, 200, 0, '操作成功', result);
-    })
-    .catch(err => {
-      console.error('err:', err);
       responseClient(res);
     });
 };
@@ -134,16 +83,3 @@ exports.delTimeAxis = (req, res) => {
       responseClient(res);
     });
 };
-//
-// // 详情
-// exports.getTimeAxisDetail = (req, res) => {
-//   let { id } = req.body;
-//   TimeAxis.findOne({ _id: id })
-//     .then(data => {
-//       responseClient(res, 200, 0, '操作成功！', data);
-//     })
-//     .catch(err => {
-//       console.error('err :', err);
-//       responseClient(res);
-//     });
-// };
