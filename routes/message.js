@@ -130,7 +130,7 @@ exports.getMessageDetail = (req, res) => {
 // 回复留言
 exports.addReplyMessage = (req, res) => {
 	let { id,  content ,cname ,state,replyTime,name,avatar} = req.body;
-	console.log( req.body)
+	console.log(req.body)
 	Message.findById({
 		_id: id,
 	})
